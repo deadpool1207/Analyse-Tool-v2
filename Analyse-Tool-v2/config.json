@@ -1,0 +1,17 @@
+{
+  "users": {
+    "admin": "password123",
+    "user": "test123",
+    "analyst": "secure456"
+  },
+  "settings": {
+    "jwtSecret": "your-secret-key-change-this-in-production",
+    "sessionTimeout": "24h",
+    "maxConcurrentAnalyses": 5,
+    "allowedPorts": [21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995, 8080, 8443]
+  },
+  "rateLimit": {
+    "maxRequestsPerHour": 100,
+    "maxIpsPerRequest": 10
+  }
+}

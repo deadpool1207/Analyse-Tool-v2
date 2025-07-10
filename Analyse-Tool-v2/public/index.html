@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌐 Modern Network Analyzer</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --dark-lighter: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #475569;
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.4);
+        }
+        
+        .login-container {
+            max-width: 450px;
+            margin: 10vh auto;
+            animation: slideUp 0.8s ease;
+        }
+        
+        .app-container {
+            animation: fadeIn 0.8s ease;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+        
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--error), #dc2626);
+            color: white;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .btn-full {
+            width: 100%;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1rem 0;
+        }
+        
+        .navbar h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .status-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .status-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .status-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .log-container {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: 500px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .log-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .log-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        
+        .log-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        
+        .log-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+        }
+        
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+            color: #fca5a5;
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+            color: #6ee7b7;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0.5rem;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .floating-element {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    <div class="floating-elements" id="floatingElements"></div>
+    
+    <div class="container">
+        <!-- Login Form -->
+        <div id="loginContainer" class="login-container">
+            <div class="glass-card">
+                <div class="header">
+                    <h1><i class="fas fa-shield-alt"></i> Login</h1>
+                    <p>Secure access to Network Analysis Tool</p>
+                </div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label" for="username">
+                            <i class="fas fa-user"></i> Benutzername
+                        </label>
+                        <input type="text" id="username" class="form-input" placeholder="Benutzername eingeben" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="password">
+                            <i class="fas fa-lock"></i> Passwort
+                        </label>
+                        <input type="password" id="password" class="form-input" placeholder="Passwort eingeben" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-full">
+                        <i class="fas fa-sign-in-alt"></i> Anmelden
+                    </button>
+                    
+                    <div id="loginError"></div>
+                </form>
+                
+                <div style="margin-top: 2rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                    <p><strong>Demo Zugangsdaten:</strong></p>
+                    <p>admin / password123</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Application -->
+        <div id="appContainer" class="app-container hidden">
+            <nav class="navbar">
+                <h1><i class="fas fa-network-wired"></i> Network Analyzer Pro</h1>
+                <button class="btn btn-danger" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Abmelden
+                </button>
+            </nav>
+            
+            <div class="status-grid" id="statusGrid">
+                <div class="status-card">
+                    <div class="status-icon" style="color: var(--primary);">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div class="status-value" id="totalIPs">0</div>
+                    <div class="status-label">Analyzed IPs</div>
+                </div>
+                
+                <div class="status-card">
+                    <div class="status-icon" style="color: var(--success);">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="status-value" id="successfulScans">0</div>
+                    <div class="status-label">Successful</div>
+                </div>
+                
+                <div class="status-card">
+                    <div class="status-icon" style="color: var(--warning);">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="status-value" id="avgLatency">0ms</div>
+                    <div class="status-label">Avg Latency</div>
+                </div>
+                
+                <div class="status-card">
+                    <div class="status-icon" style="color: var(--accent);">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="status-value" id="activeConnections">0</div>
+                    <div class="status-label">Open Ports</div>
+                </div>
+            </div>
+            
+            <div class="glass-card">
+                <h2 style="margin-bottom: 2rem; color: var(--text); font-weight: 600;">
+                    <i class="fas fa-search"></i> Network Analysis Configuration
+                </h2>
+                
+                <form id="analysisForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="ipAddresses">
+                                <i class="fas fa-server"></i> Target IP Addresses
+                            </label>
+                            <input type="text" id="ipAddresses" class="form-input" 
+                                   placeholder="8.8.8.8, 1.1.1.1, google.com" required>
+                            <small style="color: var(--text-muted); font-size: 0.8rem;">
+                                Comma-separated list of IPs or domains
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="port">
+                                <i class="fas fa-plug"></i> Target Port
+                            </label>
+                            <input type="number" id="port" class="form-input" 
+                                   placeholder="80" min="1" max="65535" required>
+                            <small style="color: var(--text-muted); font-size: 0.8rem;">
+                                Port number (1-65535)
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="margin-right: 1rem;">
+                        <i class="fas fa-play"></i> Start Analysis
+                    </button>
+                    
+                    <button type="button" class="btn btn-secondary" onclick="clearLog()">
+                        <i class="fas fa-trash"></i> Clear Log
+                    </button>
+                </form>
+            </div>
+            
+            <div class="glass-card" style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; color: var(--text); font-weight: 600;">
+                    <i class="fas fa-terminal"></i> Analysis Results
+                    <span class="pulse" id="analysisStatus" style="display: none; color: var(--accent); margin-left: 1rem;">
+                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i> Running
+                    </span>
+                </h3>
+                <div id="logBox" class="log-container">
+                    <div style="color: var(--text-muted); text-align: center; margin-top: 2rem;">
+                        <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>Ready to start network analysis...</p>
+                        <p style="font-size: 0.8rem; margin-top: 0.5rem;">Enter target IPs and click "Start Analysis"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = localStorage.getItem('authToken');
+        let analysisStats = {
+            totalIPs: 0,
+            successfulScans: 0,
+            totalLatency: 0,
+            openPorts: 0
+        };
+        
+        // Initialize floating elements
+        function createFloatingElements() {
+            const container = document.getElementById('floatingElements');
+            for (let i = 0; i < 20; i++) {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                element.style.left = Math.random() * 100 + '%';
+                element.style.top = Math.random() * 100 + '%';
+                element.style.animationDelay = Math.random() * 6 + 's';
+                container.appendChild(element);
+            }
+        }
+        
+        // Check if user is already logged in
+        if (authToken) {
+            showApp();
+        }
+        
+        createFloatingElements();
+        
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="loading-spinner"></div> Anmelden...';
+            submitBtn.disabled = true;
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    authToken = data.token;
+                    localStorage.setItem('authToken', authToken);
+                    showApp();
+                } else {
+                    showAlert('loginError', data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('loginError', 'Verbindungsfehler', 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // Analysis form handler
+        document.getElementById('analysisForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="loading-spinner"></div> Analyzing...';
+            submitBtn.disabled = true;
+            
+            document.getElementById('analysisStatus').style.display = 'inline';
+            
+            const ipAddresses = document.getElementById('ipAddresses').value;
+            const port = document.getElementById('port').value;
+            const logBox = document.getElementById('logBox');
+            
+            // Reset stats
+            analysisStats = { totalIPs: 0, successfulScans: 0, totalLatency: 0, openPorts: 0 };
+            
+            logBox.innerHTML = `
+                <div style="color: var(--accent); margin-bottom: 1rem;">
+                    <i class="fas fa-rocket"></i> Starting network analysis...
+                </div>
+            `;
+            
+            try {
+                const ips = ipAddresses.split(',').map(ip => ip.trim());
+                analysisStats.totalIPs = ips.length;
+                updateStats();
+                
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ 
+                        ips: ips,
+                        port: parseInt(port)
+                    })
+                });
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    lines.forEach(line => {
+                        if (line.trim()) {
+                            appendToLog(line);
+                            updateStatsFromLog(line);
+                        }
+                    });
+                }
+            } catch (error) {
+                appendToLog(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                document.getElementById('analysisStatus').style.display = 'none';
+                appendToLog('✅ Analysis completed!', 'success');
+            }
+        });
+        
+        function appendToLog(message, type = 'info') {
+            const logBox = document.getElementById('logBox');
+            const div = document.createElement('div');
+            div.style.marginBottom = '0.5rem';
+            
+            if (type === 'error') {
+                div.style.color = '#fca5a5';
+            } else if (type === 'success') {
+                div.style.color = '#6ee7b7';
+            } else if (type === 'warning') {
+                div.style.color = '#fbbf24';
+            } else {
+                div.style.color = 'var(--text)';
+            }
+            
+            div.textContent = message;
+            logBox.appendChild(div);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+        
+        function updateStatsFromLog(line) {
+            if (line.includes('✅ Port') && line.includes('erreichbar')) {
+                analysisStats.openPorts++;
+                analysisStats.successfulScans++;
+            }
+            
+            const latencyMatch = line.match(/(\d+) ms/);
+            if (latencyMatch) {
+                analysisStats.totalLatency += parseInt(latencyMatch[1]);
+            }
+            
+            updateStats();
+        }
+        
+        function updateStats() {
+            document.getElementById('totalIPs').textContent = analysisStats.totalIPs;
+            document.getElementById('successfulScans').textContent = analysisStats.successfulScans;
+            document.getElementById('activeConnections').textContent = analysisStats.openPorts;
+            
+            const avgLatency = analysisStats.successfulScans > 0 
+                ? Math.round(analysisStats.totalLatency / analysisStats.successfulScans)
+                : 0;
+            document.getElementById('avgLatency').textContent = avgLatency + 'ms';
+        }
+        
+        function showAlert(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="alert alert-${type}">
+                    <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'}"></i>
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+        
+        function showApp() {
+            document.getElementById('loginContainer').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+        }
+        
+        function logout() {
+            localStorage.removeItem('authToken');
+            authToken = null;
+            document.getElementById('loginContainer').classList.remove('hidden');
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('loginError').innerHTML = '';
+        }
+        
+        function clearLog() {
+            document.getElementById('logBox').innerHTML = `
+                <div style="color: var(--text-muted); text-align: center; margin-top: 2rem;">
+                    <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <p>Ready to start network analysis...</p>
+                    <p style="font-size: 0.8rem; margin-top: 0.5rem;">Enter target IPs and click "Start Analysis"</p>
+                </div>
+            `;
+            
+            // Reset stats
+            analysisStats = { totalIPs: 0, successfulScans: 0, totalLatency: 0, openPorts: 0 };
+            updateStats();
+        }
+    </script>
+</body>
+</html>
